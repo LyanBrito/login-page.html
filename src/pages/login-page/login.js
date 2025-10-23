@@ -1,51 +1,39 @@
-// Função para enviar dados do formulário para o backend Spring
-async function enviarDadosParaBackend(event) {
-    event.preventDefault(); // Previne o comportamento padrão do formulário
+document.querySelector('form').addEventListener('submit', async (event) => {
+    event.preventDefault();
 
-    // Captura os valores dos campos
-    const email = document.getElementById('email').value;
-    const senha = document.getElementById('password').value;
-
-    // Cria o objeto com os dados
-    const dadosUsuario = {
-        email: email,
-        senha: senha,
-
-    };
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
 
     try {
-        // Envia os dados para o backend Spring
-        const response = await fetch('http://localhost:8081/user/login', {
+        const response = await fetch('http://localhost:8081/user/login/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(dadosUsuario)
+            body: JSON.stringify({
+                email: email,
+                senha: password,
+            }),
         });
-        console.log(response);
-        if (response.ok) {
-            const resultado = await response.text();
-            console.log('Usuário cadastrado com sucesso:', resultado);
-            alert('Cadastro realizado com sucesso!');
 
-            // Limpa o formulário
-            document.getElementById('email').value = '';
-            document.getElementById('password').value = '';
+        const result = await response.text();
+
+        console.log(response.status);
+        console.log(result);
+
+        if (result.trim() === 'Logado com sucesso') {
+            alert('✅ Login successful! Welcome back, champ!');
+        } else if (result.trim() === 'Usuario não encontrado') {
+            alert('😕 User not found. Maybe sign up first?');
+        } else if (result.trim() === 'Senha incorreta') {
+            alert('🚫 Incorrect password, try again!');
         } else {
-            const erro = await response.json();
-            console.error('Erro ao cadastrar:', erro);
-            alert('Erro ao cadastrar usuário: ' + (erro.message || 'Erro desconhecido'));
+            console.log(result);
+            alert('🤔 Unexpected response: ' + result);
         }
-    } catch (error) {
-        console.error('Erro na requisição:', error, error.message);
-        alert('Erro ao conectar com o servidor');
-    }
-}
 
-// Adiciona o evento de submit ao formulário quando o DOM estiver carregado
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('form');
-    if (form) {
-        form.addEventListener('submit', enviarDadosParaBackend);
+    } catch (error) {
+        console.error('⚠️ Uh oh, signin blew up:', error);
+        alert('Something went wrong... backend might be napping 😴');
     }
 });
